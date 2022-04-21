@@ -1,0 +1,10 @@
+{
+  "domain": "myrt-desk",
+  "name": "Myrt Desk",
+  "issue_tracker": "https://github.com/mishamyrt/dohome-rgb/issues",
+  "documentation": "https://github.com/mishamyrt/dohome-rgb",
+  "requirements": [],
+  "codeowners": ["@mishamyrt"],
+  "config_flow": true,
+  "version": "0.1.0"
+}

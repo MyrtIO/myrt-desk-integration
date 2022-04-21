@@ -1,0 +1,5 @@
+effects = [
+    "None",
+    "Rainbow",
+    "Progress",
+]
