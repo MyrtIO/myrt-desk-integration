@@ -67,8 +67,8 @@ class MyrtDeskLight(LightEntity):
     _brightness: int = 255
     _attr_supported_features = SUPPORT_EFFECT | SUPPORT_TRANSITION
     _attr_effect_list = effects
-    _attr_min_mireds = 0
-    _attr_max_mireds = 255
+    _attr_min_mireds = 166
+    _attr_max_mireds = 400
     _mode = COLOR_MODE_HS
 
 
@@ -77,6 +77,7 @@ class MyrtDeskLight(LightEntity):
         self._api = api
         self._name = "Myrt Desk Light"
         self._available = False
+        self._mireds_range_max = self._attr_max_mireds - self._attr_min_mireds
 
     @property
     def name(self) -> str:
@@ -129,7 +130,7 @@ class MyrtDeskLight(LightEntity):
             self._brightness = resp["brightness"]
             self._is_on = resp["enabled"]
             self._rgb = tuple(resp["color"])
-            self._temperature = resp["temperature"]
+            self._temperature = self.byte_to_mireds(resp["temperature"])
             self._available = True
         except ClientError:
             self._available = False
@@ -149,7 +150,7 @@ class MyrtDeskLight(LightEntity):
             if ATTR_COLOR_TEMP in kwargs and kwargs[ATTR_COLOR_TEMP] != self._temperature:
                 self._temperature = kwargs[ATTR_COLOR_TEMP]
                 self._mode = COLOR_MODE_COLOR_TEMP
-                request["temperature"] = self._temperature
+                request["temperature"] = self.mireds_to_byte(self._temperature)
             elif ATTR_HS_COLOR in kwargs and self._rgb != color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR]):
                 self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
                 self._mode = COLOR_MODE_HS
@@ -179,3 +180,12 @@ class MyrtDeskLight(LightEntity):
             self._available = True
         except ClientError:
             self._available = False
+
+    def mireds_to_byte(self, mireds: int) -> int:
+        ranged_temp = mireds - self._attr_min_mireds
+        percent = ranged_temp / self._mireds_range_max
+        return int(255 * percent)
+
+    def byte_to_mireds(self, byte_temp: int) -> int:
+        percent = byte_temp / 255
+        return int(percent *  self._mireds_range_max) + self._attr_min_mireds
