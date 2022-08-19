@@ -143,6 +143,10 @@ class MyrtDeskLight(LightEntity):
                     "active": effects.index(kwargs[ATTR_EFFECT])
                 })
                 return
+            else:
+                await self._api.setValue("/backlight/effects", {
+                    "active": 0
+                })
             request = {}
             if ATTR_BRIGHTNESS in kwargs and kwargs[ATTR_BRIGHTNESS] != self._brightness:
                 self._brightness = kwargs[ATTR_BRIGHTNESS]
