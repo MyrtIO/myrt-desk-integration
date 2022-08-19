@@ -51,5 +51,4 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> None:
     hass.data[DOMAIN] = api
     hass.async_create_task(async_load_platform(hass, "number", DOMAIN, {}, config))
     hass.async_create_task(async_load_platform(hass, "light", DOMAIN, {}, config))
-    hass.async_create_task(async_load_platform(hass, "sensor", DOMAIN, {}, config))
     return True
