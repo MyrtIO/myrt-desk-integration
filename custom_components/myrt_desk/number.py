@@ -1,41 +1,22 @@
+"""MyrtDesk height intergration"""
 from datetime import timedelta
 import logging
-from typing import Any, Callable, Dict, Optional
-from aiohttp import ClientError
-
-from homeassistant import config_entries, core
-from homeassistant.const import (
-    ATTR_NAME,
-    CONF_ACCESS_TOKEN,
-    CONF_NAME,
-    CONF_PATH,
-    CONF_URL,
-    LENGTH_CENTIMETERS
-)
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import Entity
+from typing import Callable, Optional
+from homeassistant.const import LENGTH_CENTIMETERS
 from homeassistant.helpers.typing import (
     ConfigType,
     DiscoveryInfoType,
     HomeAssistantType,
 )
-import homeassistant.components.number as number
 from homeassistant.components.number import NumberEntity
-import voluptuous as vol
+from myrt_desk_api.legs import MyrtDeskLegs
 
-from .const import (
-    DATA_API,
-    DOMAIN,
-)
-
-from .api import (
-    MyrtDeskAPI
-)
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=5)
 
+# pylint: disable-next=unused-argument
 async def async_setup_platform(
     hass: HomeAssistantType,
     config: ConfigType,
@@ -43,17 +24,19 @@ async def async_setup_platform(
     discovery_info: Optional[DiscoveryInfoType] = None,
 ) -> None:
     """Set up desk height."""
-    api = hass.data[DOMAIN]
-    async_add_entities([MyrtDeskHeight(api)])
+    desk = hass.data[DOMAIN]
+    async_add_entities([MyrtDeskHeight(desk.legs)])
 
 class MyrtDeskHeight(NumberEntity):
-    _name = "Myrt Desk Height"
+    """MyrtDesk legs entity"""
+    _name = "MyrtDesk Height"
     _available = False
     _value = 65
+    _legs: MyrtDeskLegs = None
 
-    def __init__(self, api: MyrtDeskAPI):
+    def __init__(self, legs: MyrtDeskLegs):
         super().__init__()
-        self._api = api
+        self._legs = legs
 
     @property
     def name(self) -> str:
@@ -61,7 +44,8 @@ class MyrtDeskHeight(NumberEntity):
         return self._name
 
     @property
-    def unit_of_measurement(self):
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of desk height"""
         return LENGTH_CENTIMETERS
 
     @property
@@ -79,33 +63,28 @@ class MyrtDeskHeight(NumberEntity):
         return self._available
 
     @property
-    def value(self):
+    def native_value(self):
+        """Return the entity value to represent the entity state."""
         return self._value
 
     @property
-    def min_value(self):
+    def native_min_value(self):
+        """Return the minimum value."""
         return 65
 
     @property
-    def max_value(self):
+    def native_max_value(self):
+        """Return the maximum value."""
         return 125
 
     async def async_update(self) -> None:
         """Update the current value."""
-        try:
-            resp = await self._api.getValue("/legs")
-            self._value = resp["height"] / 10
-            self._available = True
-        except ClientError:
-            self._available = False
+        value = await self._legs.get_height()
+        self._value = value / 10
+        self._available = True
 
     async def async_set_value(self, value: float) -> None:
         """Update the current value."""
-        try:
-            await self._api.setValue("/legs", {
-                "height": int(value * 10)
-            })
-            self._value = value
-            self._available = True
-        except ClientError:
-            self._available = False
+        await self._legs.set_height(int(value * 10))
+        self._value = value
+        self._available = True

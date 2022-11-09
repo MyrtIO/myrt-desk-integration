@@ -1,1 +1,1 @@
-# Myrt Desk Home Assistant intergration
+# MyrtDesk Home Assistant intergration

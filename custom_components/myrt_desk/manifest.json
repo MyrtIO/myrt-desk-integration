@@ -1,0 +1,10 @@
+{
+  "domain": "myrt_desk",
+  "name": "Myrt Desk",
+  "issue_tracker": "https://github.com/mishamyrt/myrt_desk_hass/issues",
+  "documentation": "https://github.com/mishamyrt/myrt_desk_hass",
+  "requirements": ["myrt-desk-api==0.0.1"],
+  "codeowners": ["@mishamyrt"],
+  "config_flow": true,
+  "version": "0.2.0"
+}

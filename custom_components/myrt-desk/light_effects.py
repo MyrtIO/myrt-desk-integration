@@ -1,5 +1,0 @@
-effects = [
-    "None",
-    "Rainbow",
-    "Progress",
-]

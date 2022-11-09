@@ -25,19 +25,14 @@ import homeassistant.components.number as number
 from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.discovery import async_load_platform
 import voluptuous as vol
-
-from .api import MyrtDeskAPI
-
-from .const import (
-    CONF_ADDRESS,
-    DOMAIN,
-)
+from myrt_desk_api import MyrtDesk, discover
+from .const import DOMAIN, CONF_ADDRESS
 
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
-                vol.Required(CONF_ADDRESS): cv.string,
+                vol.Optional(CONF_ADDRESS): cv.string
             }
         )
     },
@@ -46,9 +41,15 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> None:
     """Set up intergration."""
-    session = async_get_clientsession(hass)
-    api = MyrtDeskAPI(session, config[DOMAIN][CONF_ADDRESS])
-    hass.data[DOMAIN] = api
+    host = ""
+    if CONF_ADDRESS in config[DOMAIN]:
+        host = config[DOMAIN][CONF_ADDRESS]
+    else:
+        host = await discover()
+        if host is None:
+            raise Exception("Discovery can't find MyrtDesk")
+    desk = MyrtDesk(host)
+    hass.data[DOMAIN] = desk
     hass.async_create_task(async_load_platform(hass, "number", DOMAIN, {}, config))
     hass.async_create_task(async_load_platform(hass, "light", DOMAIN, {}, config))
     return True
