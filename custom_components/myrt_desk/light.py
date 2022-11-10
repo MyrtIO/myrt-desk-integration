@@ -24,7 +24,7 @@ from myrt_desk_api.backlight import MyrtDeskBacklight, Effect
 from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=5)
+SCAN_INTERVAL = timedelta(seconds=3)
 
 effects: List[str] = []
 for effect in Effect:
@@ -143,7 +143,7 @@ class MyrtDeskLight(LightEntity):
             self._attr_available = False
 
     def _is_same_color(self, hue: float, saturation: float):
-        return self._rgb != color_util.color_hs_to_RGB(hue, saturation)
+        return self._rgb == color_util.color_hs_to_RGB(hue, saturation)
 
     def _mireds_to_byte(self, mireds: int) -> int:
         ranged_temp = mireds - self._attr_min_mireds

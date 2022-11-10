@@ -14,7 +14,7 @@ from myrt_desk_api.legs import MyrtDeskLegs
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=5)
+SCAN_INTERVAL = timedelta(seconds=3)
 
 # pylint: disable-next=unused-argument
 async def async_setup_platform(
