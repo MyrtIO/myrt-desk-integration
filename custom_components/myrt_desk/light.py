@@ -2,6 +2,7 @@
 from datetime import timedelta
 import logging
 from typing import Any, Callable, List, Optional
+from asyncio import gather
 from aiohttp import ClientError
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -108,27 +109,29 @@ class MyrtDeskLight(LightEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Update the current value."""
         try:
+            futures = []
             if not self._is_on:
-                await self._backlight.set_power(True)
+                futures.append(self._backlight.set_power(True))
                 self._is_on = True
 
             if ATTR_EFFECT in kwargs:
-                await self._backlight.set_effect(effects.index(kwargs[ATTR_EFFECT]))
+                futures.append(self._backlight.set_effect(effects.index(kwargs[ATTR_EFFECT])))
                 return
-            else:
-                await self._backlight.set_effect(0)
+            elif self._attr_effect != 'None':
+                futures.append(self._backlight.set_effect(0))
 
             if ATTR_BRIGHTNESS in kwargs and kwargs[ATTR_BRIGHTNESS] != self._brightness:
                 self._brightness = kwargs[ATTR_BRIGHTNESS]
-                await self._backlight.set_brightness(self._brightness)
+                futures.append(self._backlight.set_brightness(self._brightness))
             if ATTR_COLOR_TEMP in kwargs and kwargs[ATTR_COLOR_TEMP] != self._temperature:
                 self._temperature = kwargs[ATTR_COLOR_TEMP]
                 self._attr_color_mode = COLOR_MODE_COLOR_TEMP
-                await self._backlight.set_white(self._mireds_to_byte(self._temperature))
+                futures.append(self._backlight.set_white(self._mireds_to_byte(self._temperature)))
             elif ATTR_HS_COLOR in kwargs and not self._is_same_color(*kwargs[ATTR_HS_COLOR]):
                 self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
                 self._attr_color_mode = COLOR_MODE_HS
-                await self._backlight.set_color(self._rgb)
+                futures.append(self._backlight.set_color(self._rgb))
+            await gather(*futures)
             self._attr_available = True
         except ClientError:
             self._attr_available = False
