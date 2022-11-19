@@ -1,0 +1,16 @@
+{
+  "config": {
+    "error": {
+      "address_error": "There is no MyrtDesk at the address"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "address": "MyrtDesk network address"
+        },
+        "description": "If no address is entered, the integration will try to find the desk in the network by itself",
+        "title": "Add MyrtDesk"
+      }
+    }
+  }
+}

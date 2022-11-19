@@ -1,47 +1,36 @@
 """MyrtDesk height intergration"""
 from datetime import timedelta
 import logging
-from typing import Callable, Optional
+from homeassistant import config_entries, core
 from homeassistant.const import LENGTH_CENTIMETERS
-from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
-    HomeAssistantType,
-)
 from homeassistant.components.number import NumberEntity
 from myrt_desk_api.legs import MyrtDeskLegs
 
-from .const import DOMAIN
+from .const import DOMAIN, DEVICE_INFO
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=3)
+SCAN_INTERVAL = timedelta(seconds=5)
 
-# pylint: disable-next=unused-argument
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
-    """Set up desk height."""
-    desk = hass.data[DOMAIN]
-    async_add_entities([MyrtDeskHeight(desk.legs)])
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+):
+    """Set up desk light."""
+    desk = hass.data[DOMAIN][config_entry.entry_id]["desk"]
+    async_add_entities([MyrtDeskHeight(desk.legs)], update_before_add=True)
 
 class MyrtDeskHeight(NumberEntity):
     """MyrtDesk legs entity"""
-    _name = "MyrtDesk Height"
+    _attr_name = "MyrtDesk Height"
     _available = False
     _value = 65
     _legs: MyrtDeskLegs = None
+    _attr_device_info = DEVICE_INFO
 
     def __init__(self, legs: MyrtDeskLegs):
         super().__init__()
         self._legs = legs
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -50,8 +39,8 @@ class MyrtDeskHeight(NumberEntity):
 
     @property
     def unique_id(self) -> str:
-        """Return the unique ID of the sensor."""
-        return "myrt-desk-height"
+        """Return the unique ID of the height."""
+        return "myrt_desk_height"
 
     @property
     def icon(self):
@@ -83,7 +72,7 @@ class MyrtDeskHeight(NumberEntity):
         self._value = value / 10
         self._available = True
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         await self._legs.set_height(int(value * 10))
         self._value = value

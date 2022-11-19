@@ -39,17 +39,36 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-async def async_setup(hass: HomeAssistantType, config: ConfigType) -> None:
-    """Set up intergration."""
-    host = ""
-    if CONF_ADDRESS in config[DOMAIN]:
-        host = config[DOMAIN][CONF_ADDRESS]
+async def options_update_listener(
+    hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry
+):
+    """Handle options update."""
+    await hass.config_entries.async_reload(config_entry.entry_id)
+
+async def async_setup_entry(
+    hass: core.HomeAssistant, entry: config_entries.ConfigEntry
+) -> bool:
+    """Set up MyrtDesk entry."""
+    hass.data.setdefault(DOMAIN, {})
+    address = ""
+    if CONF_ADDRESS in entry.data and entry.data[CONF_ADDRESS] is not None:
+        address = entry.data[CONF_ADDRESS]
     else:
-        host = await discover()
-        if host is None:
+        address = await discover()
+        if address is None:
             raise Exception("Discovery can't find MyrtDesk")
-    desk = MyrtDesk(host)
-    hass.data[DOMAIN] = desk
-    hass.async_create_task(async_load_platform(hass, "number", DOMAIN, {}, config))
-    hass.async_create_task(async_load_platform(hass, "light", DOMAIN, {}, config))
+    desk = MyrtDesk(address)
+    # Registers update listener to update config entry when options are updated.
+    unsub_options_update_listener = entry.add_update_listener(options_update_listener)
+    hass.data[DOMAIN][entry.entry_id] = {
+        "unsub_options_update_listener": unsub_options_update_listener,
+        "desk": desk
+    }
+
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "light"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "number"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor"))
     return True

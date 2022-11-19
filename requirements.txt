@@ -1,2 +1,3 @@
-myrt-desk-api==0.0.1
+myrt-desk-api==0.1.2
 pylint==2.12.2
+homeassistant==2022.11.3

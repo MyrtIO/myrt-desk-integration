@@ -1,9 +1,10 @@
 """MyrtDesk light integration"""
 from datetime import timedelta
 import logging
-from typing import Any, Callable, List, Optional
+from typing import Any, List
 from asyncio import gather
 from aiohttp import ClientError
+from homeassistant import config_entries, core
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
@@ -15,14 +16,9 @@ from homeassistant.components.light import (
     SUPPORT_EFFECT
 )
 import homeassistant.util.color as color_util
-from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
-    HomeAssistantType,
-)
 from myrt_desk_api.backlight import MyrtDeskBacklight, Effect
 
-from . import DOMAIN
+from .const import DOMAIN, DEVICE_INFO
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=3)
@@ -31,16 +27,14 @@ effects: List[str] = []
 for effect in Effect:
     effects.append(effect.name.lower().capitalize())
 
-# pylint: disable-next=unused-argument
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
-    """Set up desk height."""
-    desk = hass.data[DOMAIN]
-    async_add_entities([MyrtDeskLight(desk.backlight)])
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+):
+    """Set up desk light."""
+    desk = hass.data[DOMAIN][config_entry.entry_id]["desk"]
+    async_add_entities([MyrtDeskLight(desk.backlight)], update_before_add=True)
 
 class MyrtDeskLight(LightEntity):
     """MyrtDesk backlight entity"""
@@ -57,6 +51,7 @@ class MyrtDeskLight(LightEntity):
     _attr_name = "MyrtDesk Backlight"
     _attr_color_mode = COLOR_MODE_HS
     _attr_available = False
+    _attr_device_info = DEVICE_INFO
 
     def __init__(self, backlight: MyrtDeskBacklight):
         super().__init__()
@@ -65,8 +60,8 @@ class MyrtDeskLight(LightEntity):
 
     @property
     def unique_id(self) -> str:
-        """Return the unique ID of the sensor."""
-        return "myrt-desk-light"
+        """Return the unique ID of the light."""
+        return "myrt_desk_light"
 
     @property
     def icon(self):

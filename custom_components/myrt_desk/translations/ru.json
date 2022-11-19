@@ -1,0 +1,16 @@
+{
+  "config": {
+    "error": {
+      "address_error": "MyrtDesk не найден"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "address": "Адрес MyrtDesk в сети"
+        },
+        "description": "Если адрес не будет введён, то интеграция попробует сама найти стол",
+        "title": "Добавление MyrtDesk"
+      }
+    }
+  }
+}
