@@ -1,6 +1,4 @@
 """MyrtDesk light integration"""
-from datetime import timedelta
-import logging
 from typing import Any, List
 from asyncio import gather
 from aiohttp import ClientError
@@ -19,8 +17,6 @@ import homeassistant.util.color as color_util
 from myrt_desk_api.backlight import MyrtDeskBacklight, Effect
 
 from .const import DOMAIN, DEVICE_INFO
-
-_LOGGER = logging.getLogger(__name__)
 
 effects: List[str] = []
 for effect in Effect:
@@ -93,9 +89,12 @@ class MyrtDeskLight(LightEntity):
             self._brightness = state["brightness"]
             self._is_on = state["enabled"]
             self._rgb = state["color"]
-            self._attr_color_mode = COLOR_MODE_HS if state["mode"] == 0 else COLOR_MODE_COLOR_TEMP
             self._attr_effect = Effect(state["effect"]).name.lower().capitalize()
             self._temperature = self._byte_to_mireds(state["warmness"])
+            if state["mode"] == 0:
+                self._attr_color_mode = COLOR_MODE_HS
+            else:
+                self._attr_color_mode = COLOR_MODE_COLOR_TEMP
             self._attr_available = True
         except ClientError:
             self._attr_available = False
@@ -114,17 +113,18 @@ class MyrtDeskLight(LightEntity):
             elif self._attr_effect != 'None':
                 futures.append(self._backlight.set_effect(0))
 
-            if ATTR_BRIGHTNESS in kwargs and kwargs[ATTR_BRIGHTNESS] != self._brightness:
+            if ATTR_BRIGHTNESS in kwargs:
                 self._brightness = kwargs[ATTR_BRIGHTNESS]
                 futures.append(self._backlight.set_brightness(self._brightness))
-            if ATTR_COLOR_TEMP in kwargs and kwargs[ATTR_COLOR_TEMP] != self._temperature:
+            if ATTR_COLOR_TEMP in kwargs:
                 self._temperature = kwargs[ATTR_COLOR_TEMP]
                 self._attr_color_mode = COLOR_MODE_COLOR_TEMP
                 futures.append(self._backlight.set_white(self._mireds_to_byte(self._temperature)))
-            elif ATTR_HS_COLOR in kwargs and not self._is_same_color(*kwargs[ATTR_HS_COLOR]):
-                self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
-                self._attr_color_mode = COLOR_MODE_HS
-                futures.append(self._backlight.set_color(self._rgb))
+            elif ATTR_HS_COLOR in kwargs:
+                if not self._is_same_color(*kwargs[ATTR_HS_COLOR]):
+                    self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
+                    self._attr_color_mode = COLOR_MODE_HS
+                    futures.append(self._backlight.set_color(self._rgb))
             await gather(*futures)
             self._attr_available = True
         except ClientError:

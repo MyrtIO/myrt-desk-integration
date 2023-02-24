@@ -1,15 +1,10 @@
 """MyrtDesk height intergration"""
-from datetime import timedelta
-import logging
 from homeassistant import config_entries, core
 from homeassistant.const import LENGTH_CENTIMETERS
 from homeassistant.components.number import NumberEntity
 from myrt_desk_api.legs import MyrtDeskLegs
 
 from .const import DOMAIN, DEVICE_INFO
-
-_LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=5)
 
 async def async_setup_entry(
     hass: core.HomeAssistant,

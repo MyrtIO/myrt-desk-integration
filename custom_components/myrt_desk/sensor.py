@@ -1,5 +1,4 @@
 """MyrtDesk height intergration"""
-from datetime import timedelta
 import logging
 from homeassistant import config_entries, core
 from homeassistant.const import DATA_BYTES
@@ -9,7 +8,6 @@ from myrt_desk_api.system import MyrtDeskSystem
 from .const import DOMAIN, DEVICE_INFO
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=5)
 
 async def async_setup_entry(
     hass: core.HomeAssistant,
@@ -54,4 +52,3 @@ class MyrtDeskHeap(NumberEntity):
             self._available = True
         except IOError:
             self._available = False
-

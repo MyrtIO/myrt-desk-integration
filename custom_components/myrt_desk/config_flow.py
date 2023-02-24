@@ -1,5 +1,4 @@
 """MyrtDesk Config flow"""
-import logging
 from typing import Any, Dict, Optional
 
 from homeassistant import config_entries
@@ -9,8 +8,6 @@ import voluptuous as vol
 from myrt_desk_api.discover import is_desk
 
 from .const import CONF_ADDRESS, DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
 
 DESK_SCHEMA = vol.Schema(
     {
