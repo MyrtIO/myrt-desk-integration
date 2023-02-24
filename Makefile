@@ -1,10 +1,11 @@
 VENV_PATH = ./venv
 VENV = . $(VENV_PATH)/bin/activate;
 COMPONENT_NAME = myrt_desk
+COMPONENT_PATH = home-assistant/custom_components/$(COMPONENT_NAME)
 
 deploy:
-	ssh hass "rm -rf config/custom_components/$(COMPONENT_NAME)"
-	rsync -r custom_components/$(COMPONENT_NAME)/ hass:config/custom_components/$(COMPONENT_NAME)
+	ssh home.local "sudo rm -rf $(COMPONENT_PATH)"
+	rsync -r custom_components/$(COMPONENT_NAME)/ home.local:$(COMPONENT_PATH)
 restart:
 	ssh hass "source /etc/profile.d/homeassistant.sh && ha core restart"
 configure:
