@@ -21,7 +21,6 @@ from myrt_desk_api.backlight import MyrtDeskBacklight, Effect
 from .const import DOMAIN, DEVICE_INFO
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=3)
 
 effects: List[str] = []
 for effect in Effect:
