@@ -5,7 +5,6 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from myrt_desk_api.discover import is_desk
 
 from .const import CONF_ADDRESS, DOMAIN
 
@@ -15,15 +14,16 @@ DESK_SCHEMA = vol.Schema(
     }
 )
 
-OPTIONS_SHCEMA = vol.Schema({vol.Optional(CONF_NAME, default="foo"): cv.string})
+OPTIONS_SCHEMA = vol.Schema({vol.Optional(CONF_NAME, default="foo"): cv.string})
 
 
 async def validate_address(address: str) -> None:
     """Validates a MyrtDesk address by trying to connect.
     Raises a ValueError if the path is invalid.
     """
-    if not await is_desk(address):
-        raise ValueError
+    return None
+    # if not await is_desk(address):
+    #     raise ValueError
 
 class MyrtDeskConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """MyrtDesk config flow."""

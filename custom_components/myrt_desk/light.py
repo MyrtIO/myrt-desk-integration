@@ -108,11 +108,9 @@ class MyrtDeskLight(LightEntity):
                 self._is_on = True
 
             if ATTR_EFFECT in kwargs:
-                futures.append(self._backlight.set_effect(effects.index(kwargs[ATTR_EFFECT])))
+                self._attr_effect = kwargs[ATTR_EFFECT]
+                await self._backlight.set_effect(effects.index(kwargs[ATTR_EFFECT]))
                 return
-            elif self._attr_effect != 'None':
-                futures.append(self._backlight.set_effect(0))
-
             if ATTR_BRIGHTNESS in kwargs:
                 self._brightness = kwargs[ATTR_BRIGHTNESS]
                 futures.append(self._backlight.set_brightness(self._brightness))

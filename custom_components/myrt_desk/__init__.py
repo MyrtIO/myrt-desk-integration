@@ -1,31 +1,8 @@
 """Desk Height integration."""
-from datetime import timedelta
-import logging
-from typing import Any, Callable, Dict, Optional
-
-from aiohttp import ClientError
 from homeassistant import config_entries, core
-from homeassistant.const import (
-    ATTR_NAME,
-    CONF_ACCESS_TOKEN,
-    CONF_NAME,
-    CONF_PATH,
-    CONF_URL,
-    LENGTH_CENTIMETERS
-)
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
-    HomeAssistantType,
-)
-import homeassistant.components.number as number
-from homeassistant.components.number import NumberEntity
-from homeassistant.helpers.discovery import async_load_platform
 import voluptuous as vol
-from myrt_desk_api import MyrtDesk, discover
+from myrt_desk_api import MyrtDesk
 from .const import DOMAIN, CONF_ADDRESS
 
 CONFIG_SCHEMA = vol.Schema(
@@ -54,9 +31,7 @@ async def async_setup_entry(
     if CONF_ADDRESS in entry.data and entry.data[CONF_ADDRESS] is not None:
         address = entry.data[CONF_ADDRESS]
     else:
-        address = await discover()
-        if address is None:
-            raise Exception("Discovery can't find MyrtDesk")
+        address = "MyrtDesk.local"
     desk = MyrtDesk(address)
     # Registers update listener to update config entry when options are updated.
     unsub_options_update_listener = entry.add_update_listener(options_update_listener)
