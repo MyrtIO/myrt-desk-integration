@@ -3,6 +3,8 @@ from homeassistant import config_entries, core
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from myrt_desk_api import MyrtDesk
+
+from .coordinator import MyrtDeskCoordinator
 from .const import DOMAIN, CONF_ADDRESS
 
 CONFIG_SCHEMA = vol.Schema(
@@ -33,11 +35,13 @@ async def async_setup_entry(
     else:
         address = "MyrtDesk.local"
     desk = MyrtDesk(address)
+    coordinator = MyrtDeskCoordinator(hass, desk)
     # Registers update listener to update config entry when options are updated.
     unsub_options_update_listener = entry.add_update_listener(options_update_listener)
     hass.data[DOMAIN][entry.entry_id] = {
         "unsub_options_update_listener": unsub_options_update_listener,
-        "desk": desk
+        "desk": desk,
+        "coordinator": coordinator
     }
 
     hass.async_create_task(

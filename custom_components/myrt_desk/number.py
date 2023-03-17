@@ -2,8 +2,11 @@
 from homeassistant import config_entries, core
 from homeassistant.const import LENGTH_CENTIMETERS
 from homeassistant.components.number import NumberEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.core import callback
 from myrt_desk_api.legs import MyrtDeskLegs
 
+from .coordinator import MyrtDeskCoordinator
 from .const import DOMAIN, DEVICE_INFO
 
 async def async_setup_entry(
@@ -12,10 +15,13 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Set up desk light."""
-    desk = hass.data[DOMAIN][config_entry.entry_id]["desk"]
-    async_add_entities([MyrtDeskHeight(desk.legs)], update_before_add=True)
+    data = hass.data[DOMAIN][config_entry.entry_id]
+    async_add_entities([MyrtDeskHeight(
+        data["coordinator"],
+        data["desk"].legs
+    )])
 
-class MyrtDeskHeight(NumberEntity):
+class MyrtDeskHeight(CoordinatorEntity, NumberEntity):
     """MyrtDesk legs entity"""
     _attr_name = "MyrtDesk Height"
     _available = False
@@ -23,8 +29,8 @@ class MyrtDeskHeight(NumberEntity):
     _legs: MyrtDeskLegs = None
     _attr_device_info = DEVICE_INFO
 
-    def __init__(self, legs: MyrtDeskLegs):
-        super().__init__()
+    def __init__(self, coordinator: MyrtDeskCoordinator, legs: MyrtDeskLegs):
+        super().__init__(coordinator)
         self._legs = legs
 
     @property
@@ -61,11 +67,13 @@ class MyrtDeskHeight(NumberEntity):
         """Return the maximum value."""
         return 125
 
-    async def async_update(self) -> None:
-        """Update the current value."""
-        value = await self._legs.get_height()
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        value = self.coordinator.data["height"]
         self._value = value / 10
         self._available = True
+        self.async_write_ha_state()
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""

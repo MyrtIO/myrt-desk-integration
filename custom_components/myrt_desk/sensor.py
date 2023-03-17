@@ -3,8 +3,11 @@ import logging
 from homeassistant import config_entries, core
 from homeassistant.const import DATA_BYTES
 from homeassistant.components.number import NumberEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.core import callback
 from myrt_desk_api.system import MyrtDeskSystem
 
+from .coordinator import MyrtDeskCoordinator
 from .const import DOMAIN, DEVICE_INFO
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,10 +18,13 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Set up desk sensors."""
-    desk = hass.data[DOMAIN][config_entry.entry_id]["desk"]
-    async_add_entities([MyrtDeskHeap(desk.system)], update_before_add=True)
+    data = hass.data[DOMAIN][config_entry.entry_id]
+    async_add_entities([MyrtDeskHeap(
+        data["coordinator"],
+        data["desk"].system
+    )])
 
-class MyrtDeskHeap(NumberEntity):
+class MyrtDeskHeap(CoordinatorEntity, NumberEntity):
     """MyrtDesk free heap"""
     _attr_name = "MyrtDesk Free Heap"
     _attr_unique_id = "myrt_desk_free_heap"
@@ -31,8 +37,8 @@ class MyrtDeskHeap(NumberEntity):
     _system: MyrtDeskSystem = None
     _attr_device_info = DEVICE_INFO
 
-    def __init__(self, system: MyrtDeskSystem):
-        super().__init__()
+    def __init__(self, coordinator: MyrtDeskCoordinator, system: MyrtDeskSystem):
+        super().__init__(coordinator)
         self._system = system
 
     @property
@@ -45,10 +51,9 @@ class MyrtDeskHeap(NumberEntity):
         """Return the entity value to represent the entity state."""
         return self._value
 
-    async def async_update(self) -> None:
-        """Update the current value."""
-        try:
-            self._value = await self._system.read_heap()
-            self._available = True
-        except IOError:
-            self._available = False
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._value = self.coordinator.data["heap"]
+        self.async_write_ha_state()
+

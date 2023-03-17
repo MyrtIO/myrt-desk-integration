@@ -3,6 +3,7 @@ from typing import Any, List
 from asyncio import gather
 from aiohttp import ClientError
 from homeassistant import config_entries, core
+from homeassistant.core import callback
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
@@ -13,9 +14,11 @@ from homeassistant.components.light import (
     LightEntity,
     SUPPORT_EFFECT
 )
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.util.color as color_util
 from myrt_desk_api.backlight import MyrtDeskBacklight, Effect
 
+from .coordinator import MyrtDeskCoordinator
 from .const import DOMAIN, DEVICE_INFO
 
 effects: List[str] = []
@@ -28,10 +31,13 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Set up desk light."""
-    desk = hass.data[DOMAIN][config_entry.entry_id]["desk"]
-    async_add_entities([MyrtDeskLight(desk.backlight)], update_before_add=True)
+    data = hass.data[DOMAIN][config_entry.entry_id]
+    async_add_entities([MyrtDeskLight(
+        data["coordinator"],
+        data["desk"].backlight
+    )])
 
-class MyrtDeskLight(LightEntity):
+class MyrtDeskLight(CoordinatorEntity, LightEntity):
     """MyrtDesk backlight entity"""
     _backlight: MyrtDeskBacklight = None
     _is_on: bool = False
@@ -48,8 +54,8 @@ class MyrtDeskLight(LightEntity):
     _attr_available = False
     _attr_device_info = DEVICE_INFO
 
-    def __init__(self, backlight: MyrtDeskBacklight):
-        super().__init__()
+    def __init__(self, coordinator: MyrtDeskCoordinator, backlight: MyrtDeskBacklight):
+        super().__init__(coordinator)
         self._backlight = backlight
         self._mireds_range_max = self._attr_max_mireds - self._attr_min_mireds
 
@@ -82,22 +88,21 @@ class MyrtDeskLight(LightEntity):
         """Return the color of the device."""
         return color_util.color_RGB_to_hs(*self._rgb)
 
-    async def async_update(self) -> None:
-        """Update the current value."""
-        try:
-            state = await self._backlight.read_state()
-            self._brightness = state["brightness"]
-            self._is_on = state["enabled"]
-            self._rgb = state["color"]
-            self._attr_effect = Effect(state["effect"]).name.lower().capitalize()
-            self._temperature = self._byte_to_mireds(state["warmness"])
-            if state["mode"] == 0:
-                self._attr_color_mode = COLOR_MODE_HS
-            else:
-                self._attr_color_mode = COLOR_MODE_COLOR_TEMP
-            self._attr_available = True
-        except ClientError:
-            self._attr_available = False
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        state = self.coordinator.data["light"]
+        self._brightness = state["brightness"]
+        self._is_on = state["enabled"]
+        self._rgb = state["color"]
+        self._attr_effect = Effect(state["effect"]).name.lower().capitalize()
+        self._temperature = self._byte_to_mireds(state["warmness"])
+        if state["mode"] == 0:
+            self._attr_color_mode = COLOR_MODE_HS
+        else:
+            self._attr_color_mode = COLOR_MODE_COLOR_TEMP
+        self._attr_available = True
+        self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Update the current value."""
