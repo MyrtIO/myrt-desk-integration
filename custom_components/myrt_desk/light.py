@@ -79,7 +79,7 @@ class MyrtDeskLight(CoordinatorEntity, LightEntity):
         return self._is_on
 
     @property
-    def supported_color_modes(self) -> int:
+    def supported_color_modes(self) -> set:
         """Flag supported color modes."""
         return {COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP}
 
@@ -95,9 +95,9 @@ class MyrtDeskLight(CoordinatorEntity, LightEntity):
         self._brightness = state["brightness"]
         self._is_on = state["enabled"]
         self._rgb = state["color"]
-        self._attr_effect = Effect(state["effect"]).name.lower().capitalize()
+        self._attr_effect = state["effect"].name.lower().capitalize()
         self._temperature = self._byte_to_mireds(state["warmness"])
-        if state["mode"] == 0:
+        if state["mode"].value == 0:
             self._attr_color_mode = COLOR_MODE_HS
         else:
             self._attr_color_mode = COLOR_MODE_COLOR_TEMP
@@ -130,6 +130,7 @@ class MyrtDeskLight(CoordinatorEntity, LightEntity):
                     futures.append(self._backlight.set_color(self._rgb))
             await gather(*futures)
             self._attr_available = True
+            self.async_write_ha_state()
         except ClientError:
             self._attr_available = False
 

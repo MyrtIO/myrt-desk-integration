@@ -6,6 +6,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from async_timeout import timeout
+from asyncio import TimeoutError
 from aiohttp import ClientError
 from myrt_desk_api import MyrtDesk
 
@@ -15,12 +16,12 @@ class MyrtDeskCoordinator(DataUpdateCoordinator):
     """MyrtDesk update coordinator"""
 
     def __init__(self, hass, desk: MyrtDesk):
-        """Initialize my coordinator."""
+        """Initialize MyrtDesk coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="MyrtDesk API",
-            update_interval=timedelta(seconds=5),
+            update_interval=timedelta(seconds=10),
         )
         self.desk = desk
 
@@ -29,11 +30,11 @@ class MyrtDeskCoordinator(DataUpdateCoordinator):
             async with timeout(10):
                 light = await self.desk.backlight.read_state()
                 heap = await self.desk.system.read_heap()
-                height = await self.desk.legs.get_height()
+                height = await self.desk.legs.read_height()
                 return {
                     "light": light,
                     "heap": heap,
                     "height": height
                 }
-        except (ClientError, ValueError) as err:
+        except (ClientError, ValueError, TimeoutError) as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err

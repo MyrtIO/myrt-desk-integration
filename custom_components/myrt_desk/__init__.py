@@ -34,7 +34,8 @@ async def async_setup_entry(
         address = entry.data[CONF_ADDRESS]
     else:
         address = "MyrtDesk.local"
-    desk = MyrtDesk(address)
+    desk = MyrtDesk(address, hass.loop)
+    await desk.connect()
     coordinator = MyrtDeskCoordinator(hass, desk)
     # Registers update listener to update config entry when options are updated.
     unsub_options_update_listener = entry.add_update_listener(options_update_listener)

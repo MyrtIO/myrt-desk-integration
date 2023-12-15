@@ -3,7 +3,9 @@
   "name": "MyrtDesk",
   "issue_tracker": "https://github.com/mishamyrt/myrt_desk_hass/issues",
   "documentation": "https://github.com/mishamyrt/myrt_desk_hass",
-  "requirements": ["myrt-desk-api==0.2.0"],
+  "requirements": [
+    "myrt-desk-api==1.0.3"
+  ],
   "codeowners": ["@mishamyrt"],
   "config_flow": true,
   "version": "0.2.1"
