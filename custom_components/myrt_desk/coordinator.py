@@ -28,8 +28,11 @@ class MyrtDeskCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         try:
             async with timeout(10):
+                self.desk.backlight.clear_message()
                 light = await self.desk.backlight.read_state()
+                self.desk.system.clear_message()
                 heap = await self.desk.system.read_heap()
+                self.desk.legs.clear_message()
                 height = await self.desk.legs.read_height()
                 return {
                     "light": light,
