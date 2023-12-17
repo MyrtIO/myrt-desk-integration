@@ -142,6 +142,7 @@ class MyrtDeskLight(CoordinatorEntity, LightEntity):
             self._attr_available = True
         except ClientError:
             self._attr_available = False
+        self.async_write_ha_state()
 
     def _is_same_color(self, hue: float, saturation: float):
         return self._rgb == color_util.color_hs_to_RGB(hue, saturation)
