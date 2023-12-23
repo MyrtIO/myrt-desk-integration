@@ -4,9 +4,9 @@
   "issue_tracker": "https://github.com/mishamyrt/myrt_desk_hass/issues",
   "documentation": "https://github.com/mishamyrt/myrt_desk_hass",
   "requirements": [
-    "myrt-desk-api==1.0.4"
+    "myrt-desk-api==1.0.5"
   ],
   "codeowners": ["@mishamyrt"],
   "config_flow": true,
-  "version": "0.3.0"
+  "version": "0.3.1"
 }
