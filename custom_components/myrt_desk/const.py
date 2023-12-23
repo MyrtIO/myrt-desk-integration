@@ -12,3 +12,5 @@ DEVICE_INFO = {
     "manufacturer": "Myrt",
     "model": "Desk",
 }
+
+UPDATE_INTERVAL = 5
