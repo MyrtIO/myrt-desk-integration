@@ -114,7 +114,8 @@ class MyrtDeskLight(CoordinatorEntity, LightEntity):
 
             if ATTR_EFFECT in kwargs:
                 self._attr_effect = kwargs[ATTR_EFFECT]
-                await self._backlight.set_effect(effects.index(kwargs[ATTR_EFFECT]))
+                effect_index = effects.index(kwargs[ATTR_EFFECT])
+                await self._backlight.set_effect(Effect(effect_index))
                 return
             if ATTR_BRIGHTNESS in kwargs:
                 self._brightness = kwargs[ATTR_BRIGHTNESS]
