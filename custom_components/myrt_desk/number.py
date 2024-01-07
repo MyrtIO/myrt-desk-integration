@@ -77,6 +77,10 @@ class MyrtDeskHeight(CoordinatorEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
-        await self._legs.set_height(int(value * 10))
-        self._value = value
-        self._available = True
+        try:
+            await self._legs.set_height(int(value * 10))
+            self._value = value
+            self._available = True
+        except:  # noqa: E722
+            self._available = False
+        self.async_write_ha_state()
