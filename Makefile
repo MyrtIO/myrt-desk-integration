@@ -10,7 +10,7 @@ restart:
 	ssh hass "source /etc/profile.d/homeassistant.sh && ha core restart"
 configure:
 	rm -rf "$(VENV_PATH)"
-	python3.11 -m venv "$(VENV_PATH)"
+	python3.12 -m venv "$(VENV_PATH)"
 	$(VENV) pip install -r requirements.txt
 clean:
 	rm -rf venv
