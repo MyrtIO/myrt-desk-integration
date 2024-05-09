@@ -131,9 +131,9 @@ class MyrtDeskLight(CoordinatorEntity, LightEntity):
                     self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
                     self._attr_color_mode = COLOR_MODE_HS
                     futures.append(self._backlight.set_color(self._rgb))
+            self.async_write_ha_state()
             await gather(*futures)
             self._attr_available = True
-            self.async_write_ha_state()
         except ClientError:
             self._attr_available = False
 
