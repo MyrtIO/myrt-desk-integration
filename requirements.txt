@@ -1,3 +1,5 @@
-myrt-desk-api==1.0.7
+myrtio_udp==1.0.0
+myrtio==1.0.2
 pylint==2.12.2
 homeassistant==2024.5.2
+ruff==0.4.9

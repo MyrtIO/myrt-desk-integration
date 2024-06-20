@@ -4,9 +4,9 @@
   "issue_tracker": "https://github.com/mishamyrt/myrt_desk_hass/issues",
   "documentation": "https://github.com/mishamyrt/myrt_desk_hass",
   "requirements": [
-    "myrt-desk-api==1.0.7"
+    "myrtio-udp==1.0.1"
   ],
   "codeowners": ["@mishamyrt"],
   "config_flow": true,
-  "version": "0.3.4"
+  "version": "0.4.0"
 }

@@ -2,8 +2,8 @@
 from homeassistant import config_entries, core
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from myrt_desk_api import MyrtDesk
 
+from .api import connect_desk
 from .coordinator import MyrtDeskCoordinator
 from .const import DOMAIN, CONF_ADDRESS
 
@@ -34,14 +34,14 @@ async def async_setup_entry(
         address = entry.data[CONF_ADDRESS]
     else:
         address = "MyrtDesk.local"
-    desk = MyrtDesk(address, hass.loop)
-    await desk.connect()
-    coordinator = MyrtDeskCoordinator(hass, desk)
+    api = await connect_desk(address)
+
+    coordinator = MyrtDeskCoordinator(hass, api)
     # Registers update listener to update config entry when options are updated.
     unsub_options_update_listener = entry.add_update_listener(options_update_listener)
     hass.data[DOMAIN][entry.entry_id] = {
         "unsub_options_update_listener": unsub_options_update_listener,
-        "desk": desk,
+        "api": api,
         "coordinator": coordinator
     }
 
@@ -49,6 +49,4 @@ async def async_setup_entry(
         hass.config_entries.async_forward_entry_setup(entry, "light"))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "number"))
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "sensor"))
     return True

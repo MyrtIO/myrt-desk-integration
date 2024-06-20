@@ -1,13 +1,13 @@
 """MyrtDesk height intergration"""
 from homeassistant import config_entries, core
-from homeassistant.const import LENGTH_CENTIMETERS
+from homeassistant.const import UnitOfLength
 from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import callback
-from myrt_desk_api.legs import MyrtDeskLegs
 
 from .coordinator import MyrtDeskCoordinator
 from .const import DOMAIN, DEVICE_INFO
+from .api import DeskAPI
 
 async def async_setup_entry(
     hass: core.HomeAssistant,
@@ -18,7 +18,7 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][config_entry.entry_id]
     async_add_entities([MyrtDeskHeight(
         data["coordinator"],
-        data["desk"].legs
+        data["api"]
     )])
 
 class MyrtDeskHeight(CoordinatorEntity, NumberEntity):
@@ -26,17 +26,17 @@ class MyrtDeskHeight(CoordinatorEntity, NumberEntity):
     _attr_name = "MyrtDesk Height"
     _available = False
     _value = 65
-    _legs: MyrtDeskLegs = None
+    _api: DeskAPI = None
     _attr_device_info = DEVICE_INFO
 
-    def __init__(self, coordinator: MyrtDeskCoordinator, legs: MyrtDeskLegs):
+    def __init__(self, coordinator: MyrtDeskCoordinator, api: DeskAPI):
         super().__init__(coordinator)
-        self._legs = legs
+        self._api = api
 
     @property
-    def native_unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self):
         """Return the unit of measurement of desk height"""
-        return LENGTH_CENTIMETERS
+        return UnitOfLength.CENTIMETERS
 
     @property
     def unique_id(self) -> str:
@@ -78,7 +78,7 @@ class MyrtDeskHeight(CoordinatorEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         try:
-            await self._legs.set_height(int(value * 10))
+            await self._api.set_height(int(value * 10))
             self._value = value
             self._available = True
         except:  # noqa: E722
